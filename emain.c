@@ -15,11 +15,10 @@
 #define R_ALIVE 3
 
 /*
- *  * [1] status, - = dead O = alive
- *   * [0] ready, 0 = not 1 = ready
- *	*/
+ * [1] status, - = dead O = alive
+ * [0] ready, 0 = not 1 = ready
+ */
 
-volatile char *result;
 volatile uint32_t *status;
 volatile uint32_t *state;
 
@@ -44,14 +43,11 @@ int main(void) {
 	char swap[n_reserved+(n*8)] SECTION(".text_bank2"); // adjacent aliveness
 	swap[0] = N_READY;
 	swap[1] = DEAD;
-	result = swap[1];
 
 	// starts at the beginning of sdram
-	result  = (volatile char *) (0x8f000000 + 0x1*core_num); // writing to external memory, writing 4bytes
-	// we add offset of 0x10 = 16 = ncores * sizeof(char)
-	status = (volatile uint32_t*) (0x8f000010 + 0x4*core_num);
-	// we add offset of 0x50 = 16 + 16 * sizeof(uint32_t)
-	state = (volatile uint32_t*) (0x8f000050 + 0x4*core_num);
+	status = (volatile uint32_t*) (0x8f000000 + 0x4*core_num);
+	// we add offset of 0x40 = 16 * sizeof(uint32_t)
+	state = (volatile uint32_t*) (0x8f000040 + 0x4*core_num);
 
 	unsigned n_alive;
 	while (1) { //TODO Generalize for n
@@ -81,7 +77,6 @@ int main(void) {
 			}
 		}
 
-		*result = swap[1];
 		*status = iterations;
 		*state = iof;
 	}
