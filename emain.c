@@ -6,7 +6,7 @@
 
 #define N_READY 0x0
 #define READY 0x1
-#define DEAD '-'
+#define DEAD ' '
 #define ALIVE 'O'
 
 #define U_ALIVE 0
@@ -21,6 +21,7 @@
 
 volatile uint32_t *status;
 volatile uint32_t *state;
+char* swap SECTION(".text_bank2"); // adjacent aliveness
 
 int main(void) {
 	unsigned core_row, core_col,
@@ -40,7 +41,6 @@ int main(void) {
 	core_num = core_row * group_cols + core_col;
 
 	unsigned n_reserved = 2;
-	char swap[n_reserved+(n*8)] SECTION(".text_bank2"); // adjacent aliveness
 	swap[0] = N_READY;
 	swap[1] = DEAD;
 
@@ -59,20 +59,20 @@ int main(void) {
 
 		// Update personal aliveness
 		for (int i = 0; i < 8; i++) n_alive += swap[n_reserved+i] == DEAD ? 1 : 0;
-		if (alive_neighbor == 3) swap[1] = ALIVE;
-		else if (alive_neighbor < 2) swap[1] = DEAD;
-		else if (alive_neighbor > 3) swap[1] = DEAD;
+		if (n_alive == 3) swap[1] = ALIVE;
+		else if (n_alive < 2) swap[1] = DEAD;
+		else if (n_alive > 3) swap[1] = DEAD;
 
-		//TODO broadcast aliveness to adjacents
+		// Broadcast aliveness to adjacents
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
 				if (i == 1 && j == 1) continue;
 				e_write(&e_group_config,
-						swap[1],
+						&swap[1],
 						// Shift rows and cols by -1 to point to proper adjacencies
 						(core_row+i-1)%4,
 						(core_col+j-1)%4,
-						0x4000+n_reserved+(i*3)+j,
+						(void *)0x4000+n_reserved+(i*3)+j,
 						1);
 			}
 		}
