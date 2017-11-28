@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -8,10 +9,10 @@
 
 #define DEFAULT_GENERATIONS 1
 
-int parse_line(char* line, uint* row){
+int parse_line(char* line, uint8_t* row){
 	for(int i = 0; i < strlen(line)-1; i++){
 		if((line[i] == '1')||(line[i] =='0')){
-			row[i] = (uint)line[i] % 2;
+			row[i] = (uint8_t)line[i] % 2;
 		} else {
 			printf("Illegal character: %c\n", line[i]);
 			exit(EXIT_FAILURE);
@@ -20,10 +21,12 @@ int parse_line(char* line, uint* row){
 	return 0;
 }
 
+uint8_t parse_input(char* input_file, uint8_t **world);
+
 int main(int argc, char **argv){
 	int generations = DEFAULT_GENERATIONS;
 	char *input_file;
-	uint **world;
+	uint8_t **world;
 	printf("lol\n");
 	//Handle arguments
 	if(argc < 2){
@@ -31,17 +34,17 @@ int main(int argc, char **argv){
 		return 1;
 	}
 	input_file = argv[1];
-	parse_input(input_file, world);
+	uint8_t n = parse_input(input_file, world);
 	// If generations parameter is set
 	if(argc == 3){
 		generations = atoi(argv[2]);
 	}
 
-	run_conway(world);
+	run_conway(world, n);
 	return 0;
 }
 
-int parse_input(char* input_file, uint **world){
+uint8_t parse_input(char* input_file, uint8_t **world){
 	FILE *fp;
 	char *line = NULL;
 	size_t len = 0;
@@ -56,14 +59,14 @@ int parse_input(char* input_file, uint **world){
 	}
 	printf("Dimension of world is: %zu\n", read-1);
 	size_t world_dim = read - 1;
-	world = malloc(sizeof(uint) * world_dim);
+	world = malloc(sizeof(uint8_t) * world_dim);
 	if (world) {
-		for (uint i = 0; i < world_dim; i++){
-    		world[i] = malloc(sizeof(uint) * world_dim);
+		for (uint8_t i = 0; i < world_dim; i++){
+    		world[i] = malloc(sizeof(uint8_t) * world_dim);
   		}
 	}
 	parse_line(line, world[0]);
-    for(uint rows_seen = 1;
+    for(uint8_t rows_seen = 1;
 			(rows_seen < world_dim) &&
 			((read = getline(&line, &len, fp)) != -1);
 			rows_seen++) {
@@ -80,5 +83,5 @@ int parse_input(char* input_file, uint **world){
 			printf("%u", world[i][j]);
 		printf("\n");
 	}
-	return 1;
+	return world_dim;
 }

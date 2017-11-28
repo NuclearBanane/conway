@@ -6,6 +6,7 @@ ESDK=${EPIPHANY_HOME}
 ELIBS="-L ${ESDK}/tools/host/lib"
 EINCS="-I ${ESDK}/tools/host/include"
 ELDF=${ESDK}/bsps/current/internal.ldf
+FILES="src/e_game.c  src/e_game.h  src/emain.c  src/game.c  src/game.h  src/main.c"
 
 CROSS_PREFIX=
 case $(uname -p) in
@@ -19,8 +20,10 @@ case $(uname -p) in
         ;;
 esac
 
+[ ! -d './build' ] && mkdir ./build
+
 # Build HOST side application
-${CROSS_PREFIX}gcc ./src/main.c -o ./build/main.elf  ${EINCS} ${ELIBS} -le-hal -le-loader -lpthread -c99
+${CROSS_PREFIX}gcc ${FILES} -o ./build/main.elf  -std=c99 ${EINCS} ${ELIBS} -le-hal -le-loader -lpthread
 
 # Build DEVICE side program
 # -T specifies the linker file

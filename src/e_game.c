@@ -24,7 +24,7 @@ void dev_conway(){
 	}
 }
 
-void broadcast_status(uint row, uint col, char *status){
+void broadcast_status(uint8_t row, uint8_t col, char *status){
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			if (i == 1 && j == 1) continue;
