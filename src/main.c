@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-//#include <e-hal.h>
+#include <e-hal.h>
+#include "game.h"
 
 #define DEFAULT_GENERATIONS 1
 
@@ -16,6 +17,27 @@ int parse_line(char* line, uint* row){
 			exit(EXIT_FAILURE);
 		}
 	}
+	return 0;
+}
+
+int main(int argc, char **argv){
+	int generations = DEFAULT_GENERATIONS;
+	char *input_file;
+	uint **world;
+	printf("lol\n");
+	//Handle arguments
+	if(argc < 2){
+		printf("No args, quitting");
+		return 1;
+	}
+	input_file = argv[1];
+	parse_input(input_file, world);
+	// If generations parameter is set
+	if(argc == 3){
+		generations = atoi(argv[2]);
+	}
+
+	run_conway(world);
 	return 0;
 }
 
@@ -59,28 +81,4 @@ int parse_input(char* input_file, uint **world){
 		printf("\n");
 	}
 	return 1;
-}
-
-int main(int argc, char **argv){
-	int generations = DEFAULT_GENERATIONS;
-	char *input_file;
-	uint **world;
-	printf("lol\n");
-	//Handle arguments
-	if(argc < 2){
-		printf("No args, quitting");
-		return 1;
-	}
-	input_file = argv[1];
-	parse_input(input_file, world);
-	// If generations parameter is set
-	if(argc == 3){
-		generations = atoi(argv[2]);
-	}
-
-
-
-
-	
-	return 0;
 }

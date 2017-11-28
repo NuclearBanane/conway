@@ -20,7 +20,7 @@ case $(uname -p) in
 esac
 
 # Build HOST side application
-${CROSS_PREFIX}gcc ./src/main.c -o ./build/main.elf  ${EINCS} ${ELIBS} -le-hal -le-loader -lpthread
+${CROSS_PREFIX}gcc ./src/main.c -o ./build/main.elf  ${EINCS} ${ELIBS} -le-hal -le-loader -lpthread -c99
 
 # Build DEVICE side program
 # -T specifies the linker file
