@@ -24,8 +24,8 @@ char* swap SECTION(".text_bank2"); // 0x4000
 
 char next_gen(char* state, char* adj_states) {
 	unsigned n_alive = 0;
-	for (int i = 0; i < 8; i++) n_alive += adj_states[i] == DEAD ? 1 : 0;
-	if	 (n_alive == 3) return ALIVE;
+	for (int i = 0; i < 8; i++) n_alive += adj_states[i] == ALIVE ? 1 : 0;
+	if     (n_alive == 3) return ALIVE;
 	else if (n_alive < 2) return DEAD;
 	else if (n_alive > 3) return DEAD;
 	else                  return *state;
@@ -39,8 +39,8 @@ void broadcast(char* state, unsigned row, unsigned col,
 			e_write(&e_group_config,
 					state,
 					// (-1,-1) offset to point to real adjacencies
-					(row+i-1)%4,
-					(col+j-1)%4,
+					(row+i+3)%4,
+					(col+j+3)%4,
 					rmt_adj_states + (i*3) + j,
 					1);
 		}
@@ -76,6 +76,8 @@ int main(void) {
 	e_barrier(barriers, tgt_barriers);
 
 	while (1) {
+		while (swap[0] == READY) {} // Busy waiting
+
 		iterations++;
 		unsigned tmp_iof = e_reg_read(E_REG_STATUS);
 		tmp_iof = tmp_iof & (4096); // use the sticky overflow integer flag
