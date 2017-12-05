@@ -61,13 +61,19 @@ int main(void) {
 	// we add offset of 0x40 = 16 * sizeof(uint32_t)
 	shared_state = (volatile uint32_t*) (0x8f000040 + 0x4*core_num);
 
-	unsigned n_res = 1;
-	swap[0] = N_READY;
-	for (unsigned i = 0; i < n; i++) swap[n_res+i] = DEAD;
-
 	volatile e_barrier_t barriers[16];
 	volatile e_barrier_t *tgt_barriers[16];
 	e_barrier_init(barriers, tgt_barriers);
+
+	unsigned n_res = 1;
+	swap[0] = N_READY;
+
+	for (unsigned i = 0; i < n; i++) {
+		char *rmt_adj_states = (char *)0x4000+n_res+n+8*i;
+		broadcast(&swap[n_res+i], e_row, e_col, rmt_adj_states);
+	}
+
+	e_barrier(barriers, tgt_barriers);
 
 	while (1) {
 		iterations++;
