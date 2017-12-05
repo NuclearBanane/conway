@@ -32,7 +32,7 @@ char next_gen(char* state, char* adj_states) {
 }
 
 void broadcast(char* state, unsigned row, unsigned col,
-		void* rmt_adj_store, unsigned rmt_offset) {
+		char* rmt_adj_states) {
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			if (i == 1 && j == 1) continue;
@@ -41,7 +41,7 @@ void broadcast(char* state, unsigned row, unsigned col,
 					// (-1,-1) offset to point to real adjacencies
 					(row+i-1)%4,
 					(col+j-1)%4,
-					rmt_adj_store + rmt_offset*8 + (i*3) + j,
+					rmt_adj_states + (i*3) + j,
 					1);
 		}
 	}
@@ -85,9 +85,8 @@ int main(void) {
 		e_barrier(barriers, tgt_barriers);
 
 		for (unsigned i = 0; i < n; i++) {
-			char *state = &swap[n_res+i];
-			char *rmt_adj_swap = (void *)0x4000+n_res;
-			broadcast(state, e_row, e_col, rmt_adj_swap, i);
+			char *rmt_adj_states = (char *)0x4000+n_res+n+8*i;
+			broadcast(&swap[n_res+i], e_row, e_col, rmt_adj_states);
 		}
 
 		e_barrier(barriers, tgt_barriers);
