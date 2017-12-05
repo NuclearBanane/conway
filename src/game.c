@@ -4,17 +4,21 @@
 	e_write(&dev, i, j, 0x2000, &a, sizeof(unsigned));
 }*/
 
-int* lol(uint8_t x, uint8_t y, uint8_t n){
+struct Board;
+
+uint8_t* lol(uint8_t x, uint8_t y, Board* world){
 	int core_cell_num =0;
-	uint8_t *core_cells = malloc(sizeof(uint8_t) * ((n*n)/16));
-	for(unit8_t h = 0; h < n; h+=4) {
-		for (unit8_t i = 0; i < n; h+=4) {
-			p[core_cell_num++] = world[x+h][y+i];
+	uint8_t *core_cells = malloc(sizeof(uint8_t) * ((world->dim * world->dim)/16));
+	for(uint8_t h = 0; h < world->dim; h+=4) {
+		for (uint8_t i = 0; i < world->dim; i+=4) {
+			core_cells[core_cell_num] = world->world[x+h][y+i];
+			core_cell_num++;
 		}
 	}
+	return core_cells;
 }
 
-void run_conway(uint8_t **world, uint8_t n){
+void run_conway(Board* world){
 	e_platform_t platform;
 	e_epiphany_t dev;
 
@@ -30,14 +34,27 @@ void run_conway(uint8_t **world, uint8_t n){
 	First 8 bytes :  unit8 = n
 	Second array of all states a core represents
 	*/
-	int *core_cells;
+	uint8_t *core_cells;
 	for (int i=0; i<platform.rows; i++){
 		for (int j=0; j<platform.cols; j++){
-			core_cells = lol(i,j,n);
-			for(int p = 0; p<(n*n)/16;p++)
-				printf("%u\n", core_cells);
+			core_cells = lol(i,j,world);
+			for(int p = 0; p<(world->dim*world->dim)/16;p++)
+				printf("%u\n", core_cells[p]);
 			printf("next row: %u,%u\n",i,j);
 		}
 	}
 	e_start_group(&dev);
+	char test;
+	int op = 0;
+	while(op < 5){
+	e_read(&dev, 0, 1, 0x4000, &test, sizeof(char));
+	if(test==' '){
+		printf("dead\n");
+	} else {
+		printf("alive\n");
+	}
+	op++;
+}
+
+
 }
