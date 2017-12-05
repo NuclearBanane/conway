@@ -103,4 +103,3 @@ int main(void) {
 		*shared_state = iof;
 	}
 }
-
