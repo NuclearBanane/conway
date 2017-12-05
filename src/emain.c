@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <time.h>
 #include <e-lib.h>
-#include "e_game.h"
 
 #define N_READY 0x0
 #define READY 0x1
@@ -33,7 +32,7 @@ char next_gen(char* state, char* adj_states) {
 }
 
 void broadcast(char* state, unsigned row, unsigned col,
-		void* rmt_adj_store, unsigned rmt_offset) {
+		char* rmt_adj_states) {
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			if (i == 1 && j == 1) continue;
@@ -42,7 +41,7 @@ void broadcast(char* state, unsigned row, unsigned col,
 					// (-1,-1) offset to point to real adjacencies
 					(row+i-1)%4,
 					(col+j-1)%4,
-					rmt_adj_store + rmt_offset*8 + (i*3) + j,
+					rmt_adj_states + (i*3) + j,
 					1);
 		}
 	}
@@ -52,7 +51,6 @@ int main(void) {
 	uint32_t iterations = 0;
 	uint32_t iof = 0; // Sticky Integer Overflow Flag
 	unsigned n = ((uint8_t) swap[0]) / 4; // # core-managed pnts
-
 
 	unsigned e_row = e_group_config.core_row;
 	unsigned e_col = e_group_config.core_col;
@@ -66,6 +64,7 @@ int main(void) {
 	unsigned n_res = 1;
 	swap[0] = N_READY;
 	for (unsigned i = 0; i < n; i++) swap[n_res+i] = DEAD;
+
 	volatile e_barrier_t barriers[16];
 	volatile e_barrier_t *tgt_barriers[16];
 	e_barrier_init(barriers, tgt_barriers);
@@ -86,9 +85,8 @@ int main(void) {
 		e_barrier(barriers, tgt_barriers);
 
 		for (unsigned i = 0; i < n; i++) {
-			char *state = &swap[n_res+i];
-			char *rmt_adj_swap = (void *)0x4000+n_res;
-			broadcast(state, e_row, e_col, rmt_adj_swap, i);
+			char *rmt_adj_states = (char *)0x4000+n_res+n+8*i;
+			broadcast(&swap[n_res+i], e_row, e_col, rmt_adj_states);
 		}
 
 		e_barrier(barriers, tgt_barriers);
@@ -96,5 +94,5 @@ int main(void) {
 		*shared_status = iterations;
 		*shared_state = iof;
 	}
->>>>>>> 6850df24c5fbe6bb97c83a4b7607ff244812231e
 }
+
