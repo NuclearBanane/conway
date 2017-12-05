@@ -19,6 +19,8 @@ case $(uname -p) in
         ;;
 esac
 
+[ ! -d './build' ] && mkdir ./build
+
 # Build HOST side application
 ${CROSS_PREFIX}gcc ./src/main.c -o ./build/main.elf  ${EINCS} ${ELIBS} -le-hal -le-loader -lpthread
 
