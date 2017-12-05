@@ -22,6 +22,31 @@ char* swap SECTION(".text_bank2"); // 0x4000
  *    Written in by adjacency broadcasts
  */
 
+char next_gen(char* state, char* adj_states) {
+	unsigned n_alive = 0;
+	for (int i = 0; i < 8; i++) n_alive += adj_states[i] == DEAD ? 1 : 0;
+	if	 (n_alive == 3) return ALIVE;
+	else if (n_alive < 2) return DEAD;
+	else if (n_alive > 3) return DEAD;
+	else                  return *state;
+}
+
+void broadcast(char* state, unsigned row, unsigned col,
+		void* rmt_adj_store, unsigned rmt_offset) {
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			if (i == 1 && j == 1) continue;
+			e_write(&e_group_config,
+					state,
+					// (-1,-1) offset to point to real adjacencies
+					(row+i-1)%4,
+					(col+j-1)%4,
+					rmt_adj_store + rmt_offset*8 + (i*3) + j,
+					1);
+		}
+	}
+}
+
 int main(void) {
 	uint32_t iterations = 0;
 	uint32_t iof = 0; // Sticky Integer Overflow Flag
@@ -40,8 +65,8 @@ int main(void) {
 	swap[0] = N_READY;
 	for (unsigned i = 0; i < n; i++) swap[n_res+i] = DEAD;
 
-	volatile e_barrier_t barriers[NUM_CORES];
-	e_barrier_t *tgt_barriers[NUM_CORES];
+	volatile e_barrier_t barriers[16];
+	volatile e_barrier_t *tgt_barriers[16];
 	e_barrier_init(barriers, tgt_barriers);
 
 	while (1) {
@@ -69,31 +94,6 @@ int main(void) {
 
 		*shared_status = iterations;
 		*shared_state = iof;
-	}
-}
-
-char next_gen(char* state, char* adj_states) {
-	unsigned n_alive = 0;
-	for (int i = 0; i < 8; i++) n_alive += adj_states[i] == DEAD ? 1 : 0;
-	if	 (n_alive == 3) return ALIVE;
-	else if (n_alive < 2) return DEAD;
-	else if (n_alive > 3) return DEAD;
-	else                  return *state;
-}
-
-void broadcast(char* state, unsigned row, unsigned col,
-		void* rmt_adj_store, unsigned rmt_offset) {
-	for (int i = 0; i < 3; i++) {
-		for (int j = 0; j < 3; j++) {
-			if (i == 1 && j == 1) continue;
-			e_write(&e_group_config,
-					state,
-					// (-1,-1) offset to point to real adjacencies
-					(row+i-1)%4,
-					(col+j-1)%4,
-					rmt_adj_store + rmt_offset*8 + (i*3) + j,
-					1);
-		}
 	}
 }
 
