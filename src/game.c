@@ -27,8 +27,7 @@ void run_conway(Board* world){
     e_get_platform_info(&platform);
     e_open(&dev, 0, 0, platform.rows, platform.cols); //open all cores
 
-	e_load_group("emain.elf", &dev, 0, 0, platform.rows, platform.cols, E_FALSE);
-
+	e_load_group("./build/emain.elf", &dev, 0, 0, platform.rows, platform.cols, E_FALSE);
 
 	/*
 	First 8 bytes :  unit8 = n
@@ -47,14 +46,24 @@ void run_conway(Board* world){
 	char test;
 	int op = 0;
 	while(op < 5){
-	e_read(&dev, 0, 1, 0x4000, &test, sizeof(char));
-	if(test==' '){
-		printf("dead\n");
-	} else {
-		printf("alive\n");
+		e_read(&dev, 0, 1, 0x4001, &test, sizeof(char));
+		if(test==' '){
+			printf("dead11\n");
+		} else {
+			printf("alive11\n");
+		}
+		e_read(&dev, 0, 0, 0x4001, &test, sizeof(char));
+		if(test==' '){
+			printf("dead00\n");
+		} else {
+			printf("alive00\n");
+		}
+		e_read(&dev, 1, 0, 0x4001, &test, sizeof(char));
+		if(test==' '){
+			printf("dead10\n");
+		} else {
+			printf("alive10\n");
+		}
+		op++;
 	}
-	op++;
-}
-
-
 }
