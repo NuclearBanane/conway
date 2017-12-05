@@ -76,6 +76,8 @@ int main(void) {
 	e_barrier(barriers, tgt_barriers);
 
 	while (1) {
+		while (swap[0] == READY) {} // Busy waiting
+
 		iterations++;
 		unsigned tmp_iof = e_reg_read(E_REG_STATUS);
 		tmp_iof = tmp_iof & (4096); // use the sticky overflow integer flag
