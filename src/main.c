@@ -6,16 +6,18 @@
 
 #include <e-hal.h>
 #include "game.h"
+#define DEAD ' '
+#define ALIVE 'O'
 
 #define DEFAULT_GENERATIONS 1
 
 struct Board;
 
-int parse_line(char* line, uint8_t* row){
+int parse_line(char* line, char* row){
 	int i;
 	for(i = 0; i < strlen(line)-1; i++){
 		if((line[i] == '1')||(line[i] =='0')){
-			row[i] = (uint8_t)line[i] % 2;
+			row[i] = ((uint8_t)line[i] % 2 )? ALIVE : DEAD;
 		} else {
 			printf("Illegal character: %c\n", line[i]);
 			exit(EXIT_FAILURE);
@@ -43,7 +45,7 @@ int main(int argc, char **argv){
 		generations = atoi(argv[2]);
 	}
 
-	run_conway(world);
+	run_conway(world, generations);
 	return 0;
 }
 
@@ -65,10 +67,10 @@ void parse_input(char* input_file, Board* world){
 	}
 	printf("Dimension of world is: %zu\n", read-1);
 	world->dim = (uint8_t) read - 1;
-	world->world = malloc(sizeof(uint8_t *) * world->dim);
+	world->world = malloc(sizeof(char *) * world->dim);
 	if (world->world) {
 		for (i = 0; i < world->dim; i++){
-    		world->world[i] = malloc(sizeof(uint8_t) * world->dim);
+    		world->world[i] = malloc(sizeof(char) * world->dim);
   		}
 	}
 	parse_line(line, world->world[0]);
@@ -84,7 +86,7 @@ void parse_input(char* input_file, Board* world){
 	}
 	for(i = 0; i< world->dim; i++){
 		for( j = 0; j< world->dim; j++)
-			printf("%u", world->world[i][j]);
+			printf("%c", world->world[i][j]);
 		printf("\n");
 	}
 }

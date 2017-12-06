@@ -12,17 +12,18 @@
 
 volatile uint32_t *shared_status;
 volatile uint32_t *shared_state;
-volatile char* swap SECTION(".text_bank2"); // 0x4000
-
 
 /* Swap Structure:
+ *  n_res = ready flag
  *  -> 0x4000+n_res-1:
  *    General-purpose swap chars
  *  -> 0x4000+n_res+n-1:
  *    States for all game pnts managed by this core
- *  -> 0x4000+n_res+n+8n:
+ *	  IE core cells
+ *  -> 0x4000+[n_res+n,8n]:
  *    Adjacent states for all managed cores
  *    Written in by adjacency broadcasts
+ *
  */
 
 char next_gen(volatile char* state, volatile char* adj_states) {
@@ -51,6 +52,7 @@ void broadcast(char* state, unsigned row, unsigned col,
 }
 
 int main(void) {
+	char* swap = (char *)0x4000;
 	uint32_t iterations = 0;
 	uint32_t iof = 0; // Sticky Integer Overflow Flag
 	unsigned n = ((uint8_t) swap[0]) / 4; // # core-managed pnts
@@ -59,8 +61,6 @@ int main(void) {
 	unsigned e_col = e_group_config.core_col;
 	unsigned core_num = e_row * e_group_config.group_cols + e_col;
 	swap[9] = 'A';
-	__asm__ __volatile__("idle");
-	return EXIT_SUCCESS;
 	// starts at the beginning of sdram
 	shared_status = (volatile uint32_t*) (0x8f000000 + 0x4*core_num);
 	// we add offset of 0x40 = 16 * sizeof(uint32_t)
@@ -73,6 +73,7 @@ int main(void) {
 	unsigned n_res = 1;
 	swap[0] = N_READY;
 
+	// broadcast initial state
 	for (unsigned i = 0; i < n; i++) {
 		char *rmt_adj_states = (char *)0x4000+n_res+n+8*i;
 		broadcast((char *)&swap[n_res+i], e_row, e_col, rmt_adj_states);
@@ -81,6 +82,8 @@ int main(void) {
 	e_barrier(barriers, tgt_barriers);
 
 	while (1) {
+		while (swap[0] == READY) {} // Busy waiting
+		e_barrier(barriers, tgt_barriers);
 		iterations++;
 		unsigned tmp_iof = e_reg_read(E_REG_STATUS);
 		tmp_iof = tmp_iof & (4096); // use the sticky overflow integer flag
@@ -92,17 +95,14 @@ int main(void) {
 			*state = next_gen(state, adj_states);
 		}
 
-		swap[0] = READY;
 		e_barrier(barriers, tgt_barriers);
 
 		for (unsigned i = 0; i < n; i++) {
 			char *rmt_adj_states = (char *)0x4000+n_res+n+8*i;
 			broadcast((char *) &swap[n_res+i], e_row, e_col, rmt_adj_states);
 		}
-
-		e_barrier(barriers, tgt_barriers);
-
 		*shared_status = iterations;
 		*shared_state = iof;
+		swap[0] = READY;
 	}
 }

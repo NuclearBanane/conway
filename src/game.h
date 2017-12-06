@@ -8,14 +8,14 @@
 
 struct Board_{
 	uint8_t dim;
-	uint8_t **world;
+	char **world;
 };
 
 typedef struct Board_ Board;
 
 struct CoreState_{
 	uint8_t dim;
-	uint8_t *cells;
+	char *cells;
 };
 
 typedef struct CoreState_ CoreState;
