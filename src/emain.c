@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <e-lib.h>
+#include "e_game.h"
 
 #define N_READY 0x0
 #define READY 0x1
@@ -11,7 +12,9 @@
 
 volatile uint32_t *shared_status;
 volatile uint32_t *shared_state;
-char* swap SECTION(".text_bank2"); // 0x4000
+volatile char* swap SECTION(".text_bank2"); // 0x4000
+
+
 /* Swap Structure:
  *  -> 0x4000+n_res-1:
  *    General-purpose swap chars
@@ -22,7 +25,7 @@ char* swap SECTION(".text_bank2"); // 0x4000
  *    Written in by adjacency broadcasts
  */
 
-char next_gen(char* state, char* adj_states) {
+char next_gen(volatile char* state, volatile char* adj_states) {
 	unsigned n_alive = 0;
 	for (int i = 0; i < 8; i++) n_alive += adj_states[i] == DEAD ? 1 : 0;
 	if	 (n_alive == 3) return ALIVE;
@@ -55,7 +58,9 @@ int main(void) {
 	unsigned e_row = e_group_config.core_row;
 	unsigned e_col = e_group_config.core_col;
 	unsigned core_num = e_row * e_group_config.group_cols + e_col;
-
+	swap[9] = 'A';
+	__asm__ __volatile__("idle");
+	return EXIT_SUCCESS;
 	// starts at the beginning of sdram
 	shared_status = (volatile uint32_t*) (0x8f000000 + 0x4*core_num);
 	// we add offset of 0x40 = 16 * sizeof(uint32_t)
@@ -70,7 +75,7 @@ int main(void) {
 
 	for (unsigned i = 0; i < n; i++) {
 		char *rmt_adj_states = (char *)0x4000+n_res+n+8*i;
-		broadcast(&swap[n_res+i], e_row, e_col, rmt_adj_states);
+		broadcast((char *)&swap[n_res+i], e_row, e_col, rmt_adj_states);
 	}
 
 	e_barrier(barriers, tgt_barriers);
@@ -82,8 +87,8 @@ int main(void) {
 		iof = iof | tmp_iof;
 
 		for (unsigned i = 0; i < n; i++) {
-			char *state = &swap[n_res+i];
-			char *adj_states = &swap[n_res+n+8*i];
+			volatile char *state = &swap[n_res+i];
+			volatile char *adj_states = &swap[n_res+n+8*i];
 			*state = next_gen(state, adj_states);
 		}
 
@@ -92,7 +97,7 @@ int main(void) {
 
 		for (unsigned i = 0; i < n; i++) {
 			char *rmt_adj_states = (char *)0x4000+n_res+n+8*i;
-			broadcast(&swap[n_res+i], e_row, e_col, rmt_adj_states);
+			broadcast((char *) &swap[n_res+i], e_row, e_col, rmt_adj_states);
 		}
 
 		e_barrier(barriers, tgt_barriers);

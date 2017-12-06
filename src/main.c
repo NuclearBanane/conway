@@ -12,7 +12,8 @@
 struct Board;
 
 int parse_line(char* line, uint8_t* row){
-	for(int i = 0; i < strlen(line)-1; i++){
+	int i;
+	for(i = 0; i < strlen(line)-1; i++){
 		if((line[i] == '1')||(line[i] =='0')){
 			row[i] = (uint8_t)line[i] % 2;
 		} else {
@@ -42,12 +43,6 @@ int main(int argc, char **argv){
 		generations = atoi(argv[2]);
 	}
 
-	for(size_t i = 0; i< world->dim; i++){
-		for(size_t j = 0; j< world->dim; j++)
-			printf("%u", world->world[i][j]);
-		printf("\n");
-	}
-
 	run_conway(world);
 	return 0;
 }
@@ -55,6 +50,9 @@ int main(int argc, char **argv){
 void parse_input(char* input_file, Board* world){
 	FILE *fp;
 	char *line = NULL;
+	uint8_t i=0;
+	uint8_t j=0;
+	uint8_t rows_seen=0;
 	size_t len = 0;
 	ssize_t read;
     fp = fopen(input_file, "r");
@@ -69,12 +67,12 @@ void parse_input(char* input_file, Board* world){
 	world->dim = (uint8_t) read - 1;
 	world->world = malloc(sizeof(uint8_t) * world->dim);
 	if (world->world) {
-		for (uint8_t i = 0; i < world->dim; i++){
+		for (i = 0; i < world->dim; i++){
     		world->world[i] = malloc(sizeof(uint8_t) * world->dim);
   		}
 	}
 	parse_line(line, world->world[0]);
-    for(uint8_t rows_seen = 1;
+    for(rows_seen = 1;
 			(rows_seen < world->dim) &&
 			((read = getline(&line, &len, fp)) != -1);
 			rows_seen++) {
@@ -84,8 +82,8 @@ void parse_input(char* input_file, Board* world){
 		printf("File wasn't an n by n game file\n");
 		exit(EXIT_FAILURE);
 	}
-	for(size_t i = 0; i< world->dim; i++){
-		for(size_t j = 0; j< world->dim; j++)
+	for(i = 0; i< world->dim; i++){
+		for( j = 0; j< world->dim; j++)
 			printf("%u", world->world[i][j]);
 		printf("\n");
 	}

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+
 struct Board_{
 	uint8_t dim;
 	uint8_t **world;
@@ -12,6 +13,13 @@ struct Board_{
 
 typedef struct Board_ Board;
 
+struct CoreState_{
+	uint8_t dim;
+	uint8_t *cells;
+};
+
+typedef struct CoreState_ CoreState;
+
 void run_conway(Board* world);
-uint8_t* lol(uint8_t x, uint8_t y, Board* world);
+CoreState* lol(uint8_t x, uint8_t y, Board* world);
 //int write_to_core(uint8_t value, uint8_t x, uint8_t y);

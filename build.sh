@@ -23,7 +23,7 @@ esac
 [ ! -d './build' ] && mkdir ./build
 
 # Build HOST side application
-${CROSS_PREFIX}gcc ${HOST_FILES} -o ./build/main.elf  -std=c99 ${EINCS} ${ELIBS} -le-hal -le-loader -lpthread -ggdb
+${CROSS_PREFIX}gcc ${HOST_FILES} -o ./build/main.elf ${EINCS} ${ELIBS} -le-hal -le-loader -lpthread -ggdb
 
 # Build DEVICE side program
 # -T specifies the linker file
