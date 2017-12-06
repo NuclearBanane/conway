@@ -65,7 +65,7 @@ void parse_input(char* input_file, Board* world){
 	}
 	printf("Dimension of world is: %zu\n", read-1);
 	world->dim = (uint8_t) read - 1;
-	world->world = malloc(sizeof(uint8_t) * world->dim);
+	world->world = malloc(sizeof(uint8_t *) * world->dim);
 	if (world->world) {
 		for (i = 0; i < world->dim; i++){
     		world->world[i] = malloc(sizeof(uint8_t) * world->dim);
